@@ -1,0 +1,48 @@
+name: Publish Template to NuGet
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - "LICENSE"
+      - "CONTRIBUTING.md"
+      - "CODE_OF_CONDUCT.md"
+      - "SECURITY.md"
+      - "PULL_REQUEST_TEMPLATE.md"
+      - "ISSUE_TEMPLATE.md"
+      - ".github/**"
+      - "docs/**"
+      - "tests/**"
+      - "nupkg/**"
+
+jobs:
+  publish-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Determine version
+        run: echo "PACKAGE_VERSION=1.0.${{ github.run_number }}" >> $GITHUB_ENV
+
+      - name: Restore
+        run: dotnet restore result.csproj
+
+      - name: Pack
+        run: |
+          dotnet pack result.csproj \
+            --configuration Release \
+            --output ./nupkg \
+            /p:Version=${{ env.PACKAGE_VERSION }}
+
+      - name: Push to nuget.org
+        run: |
+          dotnet nuget push "nupkg/*.nupkg" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source "https://api.nuget.org/v3/index.json" \
+            --skip-duplicate
