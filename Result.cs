@@ -5,7 +5,7 @@ namespace BackslashDev.Result;
 /// </summary>
 public class Result
 {
-    internal Result(bool isSuccess, Error error)
+    public Result(bool isSuccess, Error error)
     {
         if (isSuccess && error != Error.None)
         {
